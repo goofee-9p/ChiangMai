@@ -329,6 +329,17 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .empty__t{font-size:16px;font-weight:700;color:var(--ink-2);margin-top:14px;letter-spacing:-.03em}
 .empty__s{font-size:12.5px;margin-top:7px;line-height:1.65;font-weight:500}
 
+/* ── 일정 안쪽 인라인 지도 (모바일) ─────────────────────── */
+.mapslot{padding:12px 14px 0}
+.mapslot .view{padding-bottom:0}
+.mapslot .map{
+  height:250px;min-height:0;border-radius:var(--r-m);
+  border:1px solid var(--line);box-shadow:var(--shadow-1);
+}
+.mapslot .mapbar{padding:9px 0 0;max-width:none;margin:0}
+.mapslot .chip{padding:8px 12px;font-size:11.5px}
+.mapslot .maplist{display:none}          /* 아래 카드가 목록 역할 */
+
 /* ══════════════════════════════════════════════════════════
    지도
    ══════════════════════════════════════════════════════════ */
@@ -375,6 +386,10 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
   letter-spacing:-.02em;white-space:nowrap;
 }
 .leaflet-tooltip.pin-label::before{display:none}
+.leaflet-tooltip.pin-label.is-active{
+  background:var(--gold);color:#231A06;font-weight:800;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
 .hide-labels .leaflet-tooltip.pin-label{display:none}
 @media (prefers-color-scheme:dark){
   .leaflet-tooltip.pin-label{background:rgba(14,22,25,.92);color:#EDF2F1;
@@ -447,7 +462,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:36;
   height:calc(var(--tabbar-h) + var(--safe-b));padding-bottom:var(--safe-b);
-  display:grid;grid-template-columns:repeat(3,1fr);
+  display:grid;grid-template-columns:repeat(2,1fr);
   background:color-mix(in srgb,var(--surface) 86%,transparent);
   -webkit-backdrop-filter:saturate(180%) blur(18px);
   backdrop-filter:saturate(180%) blur(18px);
@@ -542,7 +557,8 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
    태블릿
    ══════════════════════════════════════════════════════════ */
 @media (min-width:640px) and (max-width:1023px){
-  .timeline,.info,.maplist,.mapbar,.dayhead{max-width:600px;margin-left:auto;margin-right:auto}
+  .timeline,.info,.maplist,.mapbar,.dayhead,.mapslot{max-width:600px;margin-left:auto;margin-right:auto}
+  .mapslot .map{height:280px}
   .hero{padding:28px 24px 30px}
   .hero__globe{max-width:320px;right:-2%}
   .hero__title{font-size:36px}
@@ -597,6 +613,8 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
     display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
   .info > .panel:first-child{grid-column:1 / -1}
   .info > .hint{grid-column:1 / -1}
+
+  .mapslot{display:none}
 
   /* 지도 패널 */
   .pane--map .view{padding-bottom:0;display:flex;flex-direction:column;height:100%}

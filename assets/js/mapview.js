@@ -40,8 +40,10 @@
       });
     }
 
-    /** items: [{id,title,lat,lng,s,cat}], color: 이 날의 색 */
-    function render(items, color, activeId) {
+    /** items: [{id,title,lat,lng,s,cat}], color: 이 날의 색
+     *  o.labels=false 이면 선택된 핀에만 이름표를 붙인다(작은 지도용) */
+    function render(items, color, activeId, o) {
+      o = o || {};
       layer.clearLayers(); markers = {};
       var pts = [];
       items.forEach(function (it, i) {
@@ -55,10 +57,13 @@
           '<div class="pop__m">' + esc(it.s || '') + (it.addr ? ' · ' + esc(it.addr) : '') + '</div>' +
           '<a class="pop__a" href="' + w.Transit.placeUrl(it) + '" target="_blank" rel="noopener">구글맵에서 열기 ↗</a>'
         );
-        m.bindTooltip(shortName(it.title), {
-          permanent: true, direction: 'right', offset: [7, -9],
-          className: 'pin-label', interactive: false
-        });
+        if (o.labels !== false || it.id === activeId) {
+          m.bindTooltip(shortName(it.title), {
+            permanent: true, direction: 'right', offset: [7, -9],
+            className: 'pin-label' + (it.id === activeId ? ' is-active' : ''),
+            interactive: false
+          });
+        }
         m.on('click', function () { if (opts.onPick) opts.onPick(it.id); });
         m.addTo(layer);
         markers[it.id] = m;

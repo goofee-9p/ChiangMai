@@ -156,6 +156,7 @@
 
     mountGlobe();
     renderDaybar();
+    placeMap();
     renderAll();
     bind();
     switchTab('schedule');
@@ -168,6 +169,16 @@
         toast('⚙️ 설정에서 숙소 위치를 지정해 주세요');
         S.setting('stayNagged', 1);
       }, 1400);
+    }
+  }
+
+  /** 지도 섹션을 모바일=일정 안쪽 / 데스크톱=오른쪽 패널로 옮긴다 */
+  function placeMap() {
+    var sec = $('#view-map');
+    var host = isDesk() ? $('.pane--map') : $('#mapSlot');
+    if (sec.parentNode !== host) {
+      host.appendChild(sec);
+      if (mapv) requestAnimationFrame(function () { mapv.invalidate(); renderMap(); });
     }
   }
 
@@ -313,7 +324,7 @@
   /* ══════════════════════════════════════════════════════
      지도
      ══════════════════════════════════════════════════════ */
-  function renderMap() {
+  function renderMap(keepView) {
     var day = T.days[state.day];
     var list = S.resolvedOn(day.date).filter(function (i) {
       return isFinite(i.lat) && isFinite(i.lng);
@@ -335,13 +346,17 @@
       gEl.hidden = true; gEl.innerHTML = ''; lEl.hidden = false;
       if (!mapv) {
         mapv = MV.create(lEl, { onPick: function (id) {
-          state.activeId = id; renderMapList(); renderSchedule();
-          var row = $('.mrow[data-item="' + id + '"]');
-          if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          state.activeId = id;
+          renderMap(true);                       // 보던 화면 유지한 채 선택 표시만 갱신
+          renderMapList(); renderSchedule();
+          var target = $('.card[data-item="' + id + '"]') || $('.mrow[data-item="' + id + '"]');
+          if (target) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }});
       }
-      var pts = mapv.render(list, color, state.activeId);
-      if (!$('#view-map').hidden) mapv.refresh(pts);
+      // 작은 인라인 지도에서는 이름표가 겹치므로 선택된 핀만 표시
+      var compact = lEl.offsetHeight > 0 && lEl.offsetHeight < 300;
+      var pts = mapv.render(list, color, state.activeId, { labels: !compact });
+      if (!keepView && lEl.offsetWidth > 0) mapv.refresh(pts);
     }
     renderMapList();
   }
@@ -364,6 +379,12 @@
   /* ══════════════════════════════════════════════════════
      정보
      ══════════════════════════════════════════════════════ */
+  function fmtStay(v) {
+    if (!v) return '-';
+    var p = String(v).split(' ');
+    return md(p[0]) + '(' + wd(p[0]) + ')' + (p[1] ? ' ' + p[1] : '');
+  }
+
   function renderInfo() {
     var st = S.stay();
     var all = S.resolved();
@@ -390,8 +411,10 @@
     h += '<div class="panel"><div class="panel__h"><em>🏨</em> 숙소</div>' +
       '<div class="kv"><span class="kv__k">이름</span><span class="kv__v">' + esc(st.name) + '</span></div>' +
       '<div class="kv"><span class="kv__k">주소</span><span class="kv__v">' + esc(st.addr) + '</span></div>' +
-      '<div class="kv"><span class="kv__k">체크인</span><span class="kv__v">8/30(일) 23:30</span></div>' +
-      '<div class="kv"><span class="kv__k">체크아웃</span><span class="kv__v">9/6(일) 10:00</span></div>' +
+      '<div class="kv"><span class="kv__k">체크인</span><span class="kv__v">' + fmtStay(st.checkIn) + '</span></div>' +
+      '<div class="kv"><span class="kv__k">체크아웃</span><span class="kv__v">' + fmtStay(st.checkOut) + '</span></div>' +
+      (st.host ? '<div class="kv"><span class="kv__k">호스트</span><span class="kv__v">' + esc(st.host) + '</span></div>' : '') +
+      (st.plus ? '<div class="kv"><span class="kv__k">Plus Code</span><span class="kv__v">' + esc(st.plus) + '</span></div>' : '') +
       (st.note ? '<div class="tip" style="margin-top:12px">' + esc(st.note) + '</div>' : '') +
       '<div class="btnrow btnrow--2" style="margin-top:12px">' +
         '<a class="btn btn--ghost" href="' + TR.placeUrl(st) + '" target="_blank" rel="noopener">구글맵 열기</a>' +
@@ -767,7 +790,7 @@
       var b = e.target.closest('.topnav__btn'); if (!b) return;
       switchTab(b.dataset.tab);
     });
-    var onBP = function () { switchTab(state.tab); };
+    var onBP = function () { placeMap(); switchTab(state.tab); };
     if (MQ_DESK.addEventListener) MQ_DESK.addEventListener('change', onBP);
     else MQ_DESK.addListener(onBP);
 
@@ -781,7 +804,7 @@
       if (mrow) {
         state.activeId = mrow.dataset.item;
         if (state.gmapMode) renderMap();
-        else { renderMapList(); if (mapv) mapv.focus(state.activeId); }
+        else { renderMap(true); renderMapList(); if (mapv) mapv.focus(state.activeId); }
         return;
       }
 
@@ -829,7 +852,7 @@
   }
 
   function switchTab(tab) {
-    if (isDesk() && tab === 'map') tab = 'schedule';
+    if (tab !== 'info') tab = 'schedule';
     state.tab = tab;
 
     $$('.tabbar__btn').forEach(function (x) { x.classList.toggle('is-active', x.dataset.tab === tab); });
@@ -837,14 +860,16 @@
 
     $$('.view').forEach(function (v) {
       var k = v.dataset.view;
-      v.hidden = (k === 'map') ? (isDesk() ? false : tab !== 'map') : (k !== tab);
+      if (k === 'map') { v.hidden = false; return; }        // 지도는 항상 살아있음
+      v.hidden = k !== tab;
     });
 
     $('#hero').hidden = isDesk() ? false : tab !== 'schedule';
     $('#daybar').hidden = tab === 'info';
     $('#btnAdd').hidden = !isDesk() && tab === 'info';
 
-    if (isDesk() || tab === 'map') renderMap();
+    placeMap();
+    renderMap();
     w.scrollTo({ top: 0, behavior: 'auto' });
   }
 
