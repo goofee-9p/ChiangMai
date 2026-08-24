@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<meta name="theme-color" content="#0f766e" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>유토리와 뱅토리의 두근두근 치앙마이 여행</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐘</text></svg>">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ─────────── 잠금 화면 ─────────── -->
+<div id="lock" class="lock" hidden>
+  <div class="lock__inner">
+    <div class="lock__emoji">🐘</div>
+    <h1 class="lock__title">두근두근 치앙마이</h1>
+    <p class="lock__sub">유토리 &amp; 뱅토리 · 2026.08.30 – 09.06</p>
+
+    <div class="pin" id="pinDots" aria-label="비밀번호 입력">
+      <span class="pin__dot"></span><span class="pin__dot"></span>
+      <span class="pin__dot"></span><span class="pin__dot"></span>
+    </div>
+    <p class="lock__err" id="lockErr" role="alert">&nbsp;</p>
+
+    <div class="keypad" id="keypad">
+      <button type="button" data-k="1">1</button>
+      <button type="button" data-k="2">2</button>
+      <button type="button" data-k="3">3</button>
+      <button type="button" data-k="4">4</button>
+      <button type="button" data-k="5">5</button>
+      <button type="button" data-k="6">6</button>
+      <button type="button" data-k="7">7</button>
+      <button type="button" data-k="8">8</button>
+      <button type="button" data-k="9">9</button>
+      <button type="button" class="keypad__ghost" data-k="clear">C</button>
+      <button type="button" data-k="0">0</button>
+      <button type="button" class="keypad__ghost" data-k="del">⌫</button>
+    </div>
+    <label class="lock__remember">
+      <input type="checkbox" id="lockRemember" checked> 이 기기에서 기억하기
+    </label>
+  </div>
+</div>
+
+<!-- ─────────── 앱 ─────────── -->
+<div id="app" class="app" hidden>
+
+  <header class="topbar">
+    <div class="topbar__title">
+      <strong>치앙마이 여행</strong>
+      <span id="countdown" class="topbar__countdown"></span>
+    </div>
+    <nav class="topnav" aria-label="화면 전환(데스크톱)">
+      <button type="button" class="topnav__btn is-active" data-tab="schedule">일정</button>
+      <button type="button" class="topnav__btn" data-tab="info">정보</button>
+    </nav>
+    <div class="topbar__actions">
+      <button type="button" class="iconbtn" id="btnShare" title="공유" aria-label="공유">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M12 3 8 7M12 3l4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+      </button>
+      <button type="button" class="iconbtn" id="btnSettings" title="설정" aria-label="설정">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+
+  <div class="shell">
+   <div class="pane pane--main">
+    <!-- 히어로 -->
+    <section class="hero" id="hero">
+      <canvas class="hero__globe" id="globe" aria-hidden="true"></canvas>
+      <div class="hero__copy">
+        <p class="hero__kicker">유토리와 뱅토리의</p>
+        <h1 class="hero__title">두근두근<br>치앙마이 여행</h1>
+        <p class="hero__route"><span>부산</span><i class="hero__plane">✈</i><span>치앙마이</span></p>
+        <div class="hero__meta">
+          <strong id="heroDday">D-</strong>
+          <span>2026.08.30 – 09.06 · 7박 8일 · 둘이서</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 날짜 탭 -->
+    <nav class="daybar" id="daybar" aria-label="날짜 선택"></nav>
+
+    <main class="main">
+      <!-- 일정 -->
+      <section id="view-schedule" class="view" data-view="schedule">
+        <div id="dayHead" class="dayhead"></div>
+        <div id="timeline" class="timeline"></div>
+      </section>
+
+      <!-- 정보 -->
+      <section id="view-info" class="view" data-view="info" hidden>
+        <div id="infoBody" class="info"></div>
+      </section>
+    </main>
+   </div>
+
+   <aside class="pane pane--map">
+     <!-- 지도 -->
+     <section id="view-map" class="view" data-view="map" hidden>
+       <div id="map" class="map">
+         <div id="mapLeaflet" class="map__layer"></div>
+         <div id="mapGoogle" class="map__layer" hidden></div>
+       </div>
+       <div class="mapbar">
+         <button type="button" class="chip" id="btnFitAll">전체보기</button>
+         <button type="button" class="chip chip--wide" id="btnGmapMode">🇰🇷 한글 지도</button>
+         <button type="button" class="chip chip--wide chip--go" id="btnDayRoute">동선 열기 ↗</button>
+       </div>
+       <div id="mapList" class="maplist"></div>
+     </section>
+   </aside>
+  </div>
+
+  <button type="button" class="fab" id="btnAdd" aria-label="일정 추가">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <nav class="tabbar" id="tabbar" aria-label="화면 전환">
+    <button type="button" class="tabbar__btn is-active" data-tab="schedule">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <span>일정</span>
+    </button>
+    <button type="button" class="tabbar__btn" data-tab="map">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <span>지도</span>
+    </button>
+    <button type="button" class="tabbar__btn" data-tab="info">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      <span>정보</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ─────────── 시트(모달) ─────────── -->
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet__scrim" data-close></div>
+  <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet__grip"></div>
+    <header class="sheet__head">
+      <h2 id="sheetTitle"></h2>
+      <button type="button" class="iconbtn" data-close aria-label="닫기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </header>
+    <div class="sheet__body" id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/transit.js"></script>
+<script src="assets/js/globe.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/mapview.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
