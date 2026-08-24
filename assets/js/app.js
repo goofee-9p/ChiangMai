@@ -14,6 +14,7 @@
     temple:   { i:'🛕', n:'사원' },
     food:     { i:'🍜', n:'식사' },
     cafe:     { i:'☕', n:'카페' },
+    bar:      { i:'🍸', n:'술집' },
     nature:   { i:'🌿', n:'자연' },
     activity: { i:'🐘', n:'액티비티' },
     spa:      { i:'💆', n:'스파' },
@@ -220,7 +221,7 @@
     if (el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   }
 
-  function renderAll() { renderSchedule(); renderMap(); renderCal(); renderInfo(); }
+  function renderAll() { renderSchedule(); renderMap(); renderCal(); renderPick(); renderInfo(); }
 
   /* ══════════════════════════════════════════════════════
      일정 (타임라인 + 이동 구간)
@@ -475,6 +476,132 @@
     var top = (m - h0 * 60) / 60;
     return '<div class="cal__now" style="top:calc(' + top + ' * var(--calH));' +
            'grid-column:' + (idx + 2) + '"></div>';
+  }
+
+
+  /* ══════════════════════════════════════════════════════
+     추천 장소 — 골라서 일정에 넣기
+     ══════════════════════════════════════════════════════ */
+  var PCAT_HUE = { market:20, cafe:32, bar:276, food:352, activity:166, temple:44, spa:322 };
+  var pickCat = 'all';
+
+  function placeHue(p) {
+    var base = PCAT_HUE[p.c] != null ? PCAT_HUE[p.c] : 200;
+    var same = w.PLACES.filter(function (x) { return x.c === p.c; });
+    var i = same.indexOf(p);
+    return base + (i * 5) - Math.floor(same.length * 2.5);
+  }
+
+  /** 이미 일정에 넣은 추천 장소인지 */
+  function pickedIds() {
+    var set = {};
+    S.items().forEach(function (it) { if (it.pid) set[it.pid] = 1; });
+    return set;
+  }
+
+  function renderPick() {
+    var catsEl = $('#pickCats'), gridEl = $('#pickGrid');
+    if (!catsEl) return;
+
+    catsEl.innerHTML = '<button type="button" class="pcat' +
+      (pickCat === 'all' ? ' is-on' : '') + '" data-pcat="all">전체 ' +
+      w.PLACES.length + '</button>' +
+      w.PLACE_CATS.map(function (c) {
+        var n = w.PLACES.filter(function (p) { return p.c === c.k; }).length;
+        return '<button type="button" class="pcat' + (pickCat === c.k ? ' is-on' : '') +
+          '" data-pcat="' + c.k + '">' + c.i + ' ' + c.n + ' ' + n + '</button>';
+      }).join('');
+
+    var done = pickedIds();
+    var list = w.PLACES.filter(function (p) { return pickCat === 'all' || p.c === pickCat; });
+
+    gridEl.innerHTML = list.map(function (p) {
+      var h = placeHue(p);
+      return '<button type="button" class="pcard" data-pick="' + p.id + '" style="--h:' + h + '">' +
+        '<span class="pcard__img">' +
+          '<span class="pcard__bg">' + p.e + '</span>' +
+          '<span class="pcard__badge">' + catOf(p.c).i + '</span>' +
+          (done[p.id] ? '<span class="pcard__done">✓ 추가됨</span>' : '') +
+        '</span>' +
+        '<span class="pcard__b">' +
+          '<span class="pcard__n">' + esc(p.n) + '</span>' +
+          '<span class="pcard__a">' + esc(p.area) + '</span>' +
+          '<span class="pcard__m">' + esc(p.price) + ' · ' + TR.fmtMin(p.dur) + '</span>' +
+        '</span></button>';
+    }).join('');
+  }
+
+  function catOf(k) {
+    for (var i = 0; i < w.PLACE_CATS.length; i++) if (w.PLACE_CATS[i].k === k) return w.PLACE_CATS[i];
+    return w.PLACE_CATS[0];
+  }
+
+  /** 추천 카테고리 → 일정 카테고리 */
+  var PCAT_TO_ITEM = { market:'shop', cafe:'cafe', bar:'bar', food:'food',
+                       activity:'activity', temple:'temple', spa:'spa' };
+
+  function openPick(pid) {
+    var p = null;
+    for (var i = 0; i < w.PLACES.length; i++) if (w.PLACES[i].id === pid) p = w.PLACES[i];
+    if (!p) return;
+    var h = placeHue(p), done = pickedIds()[p.id];
+
+    var body =
+      '<div class="phero" style="--h:' + h + '">' +
+        '<span class="phero__bg">' + p.e + '</span>' +
+        '<span class="phero__n">' + esc(p.n) + '</span>' +
+        '<span class="phero__e">' + esc(p.en) + '</span>' +
+      '</div>' +
+      '<div class="kv"><span class="kv__k">위치</span><span class="kv__v">' + esc(p.area) + '</span></div>' +
+      '<div class="kv"><span class="kv__k">영업</span><span class="kv__v">' + esc(p.hours) + '</span></div>' +
+      '<div class="kv"><span class="kv__k">가격대</span><span class="kv__v">' + esc(p.price) + '</span></div>' +
+      '<div class="kv"><span class="kv__k">예상 소요</span><span class="kv__v">' + TR.fmtMin(p.dur) + '</span></div>' +
+      '<p class="card__note" style="margin-top:14px">' + esc(p.why) + '</p>' +
+      (p.tip ? '<div class="tip" style="margin-top:12px">' + esc(p.tip) + '</div>' : '') +
+      '<div class="btnrow btnrow--2" style="margin-top:16px">' +
+        '<a class="btn btn--ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' +
+          encodeURIComponent(p.q) + '">📍 구글맵</a>' +
+        '<a class="btn btn--ghost" target="_blank" rel="noopener" href="https://www.google.com/search?tbm=isch&q=' +
+          encodeURIComponent(p.q) + '">📷 사진 보기</a>' +
+      '</div>' +
+      (done ? '<div class="tip" style="margin-top:14px">✅ 이미 일정에 들어있어요. 아래에서 한 번 더 추가할 수도 있습니다.</div>' : '') +
+      '<div class="rule"></div>' +
+      '<form id="pickForm">' +
+        '<div class="field__l">일정에 넣기</div>' +
+        '<div class="row" style="margin-bottom:10px">' +
+          '<select class="input" id="p_date">' + T.days.map(function (d) {
+            return '<option value="' + d.date + '"' + (d.date === T.days[state.day].date ? ' selected' : '') +
+              '>' + d.tag + ' · ' + md(d.date) + '(' + wd(d.date) + ')</option>';
+          }).join('') + '</select>' +
+          '<input class="input" id="p_time" type="time" value="' + esc(p.s || '10:00') + '">' +
+        '</div>' +
+        '<div class="btnrow"><button type="submit" class="btn btn--primary">＋ 이 날짜에 추가</button></div>' +
+      '</form>';
+
+    openSheet('추천 장소', body);
+
+    $('#pickForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var date = $('#p_date').value, st = $('#p_time').value || p.s || '10:00';
+      var end = addMin(st, p.dur);
+      S.addItem({
+        pid: p.id, date: date, s: st, e: end,
+        cat: PCAT_TO_ITEM[p.c] || 'shop',
+        title: p.n, lat: p.lat, lng: p.lng, addr: p.area,
+        note: p.why + (p.tip ? '\n\n' + p.tip : ''),
+        book: p.book || undefined
+      });
+      var di = T.days.findIndex(function (d) { return d.date === date; });
+      if (di >= 0) state.day = di;
+      closeSheet(); renderDaybar(); renderAll(); renderPick();
+      toast(p.n + ' 추가 완료 · ' + md(date) + ' ' + st);
+    });
+  }
+
+  function addMin(hhmm, mins) {
+    var t = toMin(hhmm) + (mins || 60);
+    t = Math.min(t, 23 * 60 + 59);
+    return ('0' + Math.floor(t / 60)).slice(-2) + ':' + ('0' + (t % 60)).slice(-2);
   }
 
   /* ══════════════════════════════════════════════════════
@@ -929,6 +1056,12 @@
         return;
       }
 
+      var pcat = t.closest('[data-pcat]');
+      if (pcat) { pickCat = pcat.dataset.pcat; renderPick(); return; }
+
+      var pcard = t.closest('[data-pick]');
+      if (pcard) { openPick(pcard.dataset.pick); return; }
+
       var calday = t.closest('[data-calday]');
       if (calday) { state.day = +calday.dataset.calday; renderDaybar(); renderAll(); switchTab('schedule'); return; }
 
@@ -986,7 +1119,7 @@
   }
 
   function switchTab(tab) {
-    if (tab !== 'info' && tab !== 'cal') tab = 'schedule';
+    if (['info','cal','pick'].indexOf(tab) < 0) tab = 'schedule';
     state.tab = tab;
 
     $$('.tabbar__btn').forEach(function (x) { x.classList.toggle('is-active', x.dataset.tab === tab); });
@@ -1006,6 +1139,7 @@
     placeMap();
     renderMap();
     if (tab === 'cal') renderCal();
+    if (tab === 'pick') renderPick();
     w.scrollTo({ top: 0, behavior: 'auto' });
   }
 
