@@ -15,14 +15,14 @@ window.PLACE_CATS = [
 
 window.PLACES = [
   /* ─────────────── 야시장 ─────────────── */
-  { id:'m1', c:'market', e:'🍖', n:'창푸악 게이트 야시장', en:'Chang Phueak Gate Night Market',
+  { id:'m1', c:'market', e:'🍖', img:'m1.jpg', by:"Hartmann Linge", lic:'CC BY-SA 4.0', src:'https://commons.wikimedia.org/wiki/File%3A201703291151b_P_Chiang_Mai%2C_City_Wall%2C_Chang_Phuak_Gate.jpg', n:'창푸악 게이트 야시장', en:'Chang Phueak Gate Night Market',
     area:'올드시티 북문 (노스게이트)', lat:18.79543, lng:98.98659,
     q:'Chang Phueak Gate Night Market Chiang Mai',
     hours:'매일 18:00–24:00', price:'฿', dur:60, s:'19:00',
     why:'현지인 야식 성지. 「카우보이햇 아줌마」의 카우카무(족발덮밥)가 한 그릇 50฿.',
     tip:'재료 떨어지면 조기 마감. 바로 앞이 노스게이트 재즈바라 세트로 묶기 좋아요.' },
 
-  { id:'m2', c:'market', e:'🏮', n:'타패 일요 워킹스트리트', en:'Sunday Walking Street',
+  { id:'m2', c:'market', e:'🏮', img:'m2.jpg', by:"Takeaway", lic:'CC BY-SA 4.0', src:'https://commons.wikimedia.org/wiki/File%3AChiang_Mai_sunday_evening_walking_street.jpg', n:'타패 일요 워킹스트리트', en:'Sunday Walking Street',
     area:'라차담넌 로드 (타패게이트 시작)', lat:18.78776, lng:98.99327,
     q:'Sunday Walking Street Chiang Mai',
     hours:'일요일만 16:00–22:00', price:'฿฿', dur:150, s:'17:00',
@@ -36,14 +36,14 @@ window.PLACES = [
     why:'은세공 마을 골목에서 열리는 야시장. 일요일보다 한산해서 쇼핑이 편해요.',
     tip:'9/5(토)에 열립니다. 실버템플 구경하고 바로 이어가면 동선이 깔끔해요.' },
 
-  { id:'m4', c:'market', e:'🛍️', n:'치앙마이 나이트 바자', en:'Night Bazaar',
+  { id:'m4', c:'market', e:'🛍️', img:'m4.jpg', by:"Christophe95", lic:'CC BY-SA 4.0', src:'https://commons.wikimedia.org/wiki/File%3AChiang_Mai_Night_Bazaar_in_2018.jpg', n:'치앙마이 나이트 바자', en:'Night Bazaar',
     area:'창클란 로드', lat:18.78444, lng:99.00038,
     q:'Chiang Mai Night Bazaar',
     hours:'매일 18:00–24:00', price:'฿฿', dur:90, s:'19:00',
     why:'요일 상관없이 매일 열리는 상설 야시장. 푸드코트(아눗사른)에서 저녁도 해결됩니다.',
     tip:'기념품은 일요야시장이 더 싸요. 여긴 눈요기 + 저녁 + 라이브바 용도로.' },
 
-  { id:'m5', c:'market', e:'🥭', n:'와로롯 시장', en:'Warorot Market',
+  { id:'m5', c:'market', e:'🥭', img:'m5.jpg', by:"Christophe95", lic:'CC BY-SA 4.0', src:'https://commons.wikimedia.org/wiki/File%3AWarorot_market_4.jpg', n:'와로롯 시장', en:'Warorot Market',
     area:'창모이 로드', lat:18.79024, lng:99.00054,
     q:'Warorot Market Chiang Mai',
     hours:'매일 06:00–18:00', price:'฿', dur:75, s:'10:30',
@@ -158,7 +158,7 @@ window.PLACES = [
     tip:'💑 커플 사진 찍기 좋아요. 월요일엔 문 닫는 가게가 많습니다.' },
 
   /* ─────────────── 식당 ─────────────── */
-  { id:'f1', c:'food', e:'🍜', n:'카오소이 쿤야이', en:'Khao Soi Khun Yai',
+  { id:'f1', c:'food', e:'🍜', img:'f1.jpg', by:"Takeaway", lic:'CC BY-SA 3.0', src:'https://commons.wikimedia.org/wiki/File%3AKhao_soi_Chiang_Mai.jpg', n:'카오소이 쿤야이', en:'Khao Soi Khun Yai',
     area:'올드시티 북쪽', lat:18.79200, lng:98.98380,
     q:'Khao Soi Khun Yai Chiang Mai',
     hours:'월~토 11:00–14:00 (점심만)', price:'฿', dur:45, s:'12:00',
@@ -186,7 +186,7 @@ window.PLACES = [
     why:'님만 최고 인기 북부요리집. 커우머깨·무양·남프릭 세트. 2인 500~700฿.',
     tip:'저녁 대기가 길어요. 18시 전에 가거나 늦게(20시 이후) 가는 게 좋아요.' },
 
-  { id:'f5', c:'food', e:'🍛', n:'카오소이 매싸이', en:'Khao Soi Mae Sai',
+  { id:'f5', c:'food', e:'🍛', img:'f5.jpg', by:"Douglas Perkins", lic:'CC BY 4.0', src:'https://commons.wikimedia.org/wiki/File%3AKhao_Soi_01.jpg', n:'카오소이 매싸이', en:'Khao Soi Mae Sai',
     area:'창푸악 (올드시티 북쪽)', lat:18.79620, lng:98.98250,
     q:'Khao Soi Mae Sai Chiang Mai',
     hours:'매일 08:00–16:00', price:'฿', dur:40, s:'11:30',
@@ -208,21 +208,21 @@ window.PLACES = [
     tip:'작고 인기 많아 대기 있음. 숙소에서 도보 5분이라 부담 없이.' },
 
   /* ─────────────── 액티비티 ─────────────── */
-  { id:'a1', c:'activity', e:'👩‍🍳', n:'타이 쿠킹 클래스', en:'Thai Cooking Class',
+  { id:'a1', c:'activity', e:'👩‍🍳', img:'a1.jpg', by:"Thai Secret Cooking School", lic:'CC BY-SA 4.0', src:'https://commons.wikimedia.org/wiki/File%3AThai-Cooking-Class-Chiang-Mai-Thailand.jpg', n:'타이 쿠킹 클래스', en:'Thai Cooking Class',
     area:'올드시티 (업체별 픽업)', lat:18.78776, lng:98.99327,
     q:'Thai cooking class Chiang Mai',
     hours:'반일(09:00~13:00) / 종일', price:'฿฿฿', dur:240, s:'09:00',
     why:'💑 커플 여행 인기 1순위. 아침 시장 투어 → 4~5가지 요리 → 레시피북 증정.',
     tip:'1,000~1,400฿/인, 숙소 픽업 포함. 전날까지 예약. 채식/알러지 미리 알리기.', book:true },
 
-  { id:'a2', c:'activity', e:'💦', n:'부아텅 스티키 폭포', en:'Bua Thong Sticky Waterfall',
+  { id:'a2', c:'activity', e:'💦', img:'a2.jpg', by:"Random username 083794703875938", lic:'CC0', src:'https://commons.wikimedia.org/wiki/File%3A%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%95%E0%B8%81%E0%B8%AB%E0%B8%99%E0%B8%B6%E0%B9%88%E0%B8%87%E0%B9%80%E0%B8%AB%E0%B8%99%E0%B8%B5%E0%B8%A2%E0%B8%A7_%E0%B9%91_-_One_sticky_waterfall_1.jpg', n:'부아텅 스티키 폭포', en:'Bua Thong Sticky Waterfall',
     area:'매댕 (시내에서 1시간)', lat:19.06799, lng:99.07953,
     q:'Bua Thong Waterfall Chiang Mai',
     hours:'매일 08:00–17:00', price:'무료', dur:120, s:'14:00',
     why:'⭐ 석회질이라 미끄럽지 않아 맨발로 폭포를 걸어 올라가는 곳. 입장 무료.',
     tip:'💑 커플 사진 명소. 대중교통이 없어 그랩 왕복 또는 기사 대절(반일 800~1,200฿) 필요. 갈아입을 옷 챙기세요.' },
 
-  { id:'a3', c:'activity', e:'⛰️', n:'도이인타논 국립공원', en:'Doi Inthanon',
+  { id:'a3', c:'activity', e:'⛰️', img:'a3.jpg', by:"Morgan Miller", lic:'CC BY-SA 3.0', src:'https://commons.wikimedia.org/wiki/File%3ADoi_Inthanon_National_Park-_In_between_king_and_queen_pagodas.JPG', n:'도이인타논 국립공원', en:'Doi Inthanon',
     area:'시내에서 편도 2시간', lat:18.58830, lng:98.48660,
     q:'Doi Inthanon National Park',
     hours:'종일 투어 (07:00 픽업)', price:'฿฿฿', dur:600, s:'07:00',
@@ -243,14 +243,14 @@ window.PLACES = [
     why:'산등성이 계단식 화원과 전망. 몽족 마을에서 운영하는 식당에서 점심도 가능.',
     tip:'우기엔 초록이 가장 예뻐요. 안개 끼면 전망이 안 보이니 오전 추천.' },
 
-  { id:'a6', c:'activity', e:'🌺', n:'여왕 시리킷 식물원', en:'Queen Sirikit Botanic Garden',
+  { id:'a6', c:'activity', e:'🌺', img:'a6.jpg', by:"User:Amada44", lic:'CC BY-SA 4.0', src:'https://commons.wikimedia.org/wiki/File%3AThe_Queen_Sirikit_Botanic_Garden_-_Chiang_Mai_2013_2490.jpg', n:'여왕 시리킷 식물원', en:'Queen Sirikit Botanic Garden',
     area:'매림', lat:18.89869, lng:98.86054,
     q:'Queen Sirikit Botanic Garden Chiang Mai',
     hours:'매일 08:30–17:00', price:'฿', dur:150, s:'10:00',
     why:'열대우림 위를 걷는 캐노피 워크웨이와 대형 온실. 산책 코스로 좋아요.',
     tip:'입장 100฿/인 + 차량 진입료. 몬쨈과 같은 방향이라 묶어서 다니면 좋습니다.' },
 
-  { id:'a7', c:'activity', e:'🦁', n:'치앙마이 나이트 사파리', en:'Chiang Mai Night Safari',
+  { id:'a7', c:'activity', e:'🦁', img:'a7.jpg', by:"KungDekZa", lic:'CC BY-SA 3.0', src:'https://commons.wikimedia.org/wiki/File%3AChiang_Mai_Night_Safari_Savanna_Safari.JPG', n:'치앙마이 나이트 사파리', en:'Chiang Mai Night Safari',
     area:'항동 (시내 남서쪽)', lat:18.73973, lng:98.91911,
     q:'Chiang Mai Night Safari',
     hours:'매일 11:00–22:00 (야간투어 18:30~)', price:'฿฿฿', dur:180, s:'18:00',
@@ -258,56 +258,56 @@ window.PLACES = [
     tip:'외국인 요금이 따로 있어요(약 800฿/인). 야간 트램은 시간대가 정해져 있으니 미리 확인.' },
 
   /* ─────────────── 사원 · 명소 ─────────────── */
-  { id:'t1', c:'temple', e:'🐘', n:'왓 치앙만 (코끼리 사원)', en:'Wat Chiang Man',
+  { id:'t1', c:'temple', e:'🐘', img:'t1.jpg', by:"Stefan Fussan", lic:'CC BY-SA 3.0', src:'https://commons.wikimedia.org/wiki/File%3AChiang_Mai_-_Wat_Chiang_Man_-_0002.jpg', n:'왓 치앙만 (코끼리 사원)', en:'Wat Chiang Man',
     area:'올드시티 북동쪽', lat:18.79356, lng:98.98938,
     q:'Wat Chiang Man Chiang Mai',
     hours:'매일 08:00–17:00', price:'무료', dur:50, s:'10:00',
     why:'⭐ 치앙마이에서 가장 오래된 사원(1296). 코끼리 15마리가 떠받치는 「체디 창 롬」이 상징.',
     tip:'사진 명당은 체디 남동쪽 모서리. 입장 무료(시주함). 어깨·무릎 가리는 복장.' },
 
-  { id:'t2', c:'temple', e:'⛩️', n:'왓 프라탓 도이수텝', en:'Wat Phra That Doi Suthep',
+  { id:'t2', c:'temple', e:'⛩️', img:'t2.jpg', by:"KOSIN SUKHUM", lic:'CC BY-SA 4.0', src:'https://commons.wikimedia.org/wiki/File%3AWat_Phra_That_Doi_Suthep_Chaing_Mai.jpg', n:'왓 프라탓 도이수텝', en:'Wat Phra That Doi Suthep',
     area:'도이수텝 산 (시내 30분)', lat:18.80501, lng:98.92218,
     q:'Wat Phra That Doi Suthep',
     hours:'매일 06:00–20:00', price:'฿', dur:120, s:'09:00',
     why:'⭐ 치앙마이의 상징. 306계단(나가 계단)을 오르면 황금 체디와 시내 전망.',
     tip:'입장 50฿/인, 케이블카 30฿. 오전이 안개 적고 시원해요. 복장 규정 엄격(스카프 대여 가능).' },
 
-  { id:'t3', c:'temple', e:'🕌', n:'왓 체디루앙', en:'Wat Chedi Luang',
+  { id:'t3', c:'temple', e:'🕌', img:'t3.jpg', by:"Vyacheslav Argenberg", lic:'CC BY 4.0', src:'https://commons.wikimedia.org/wiki/File%3AWat_Chedi_Luang%2C_Night%2C_Chiang_Mai%2C_Thailand.jpg', n:'왓 체디루앙', en:'Wat Chedi Luang',
     area:'프라폭클라오 로드', lat:18.78714, lng:98.98678,
     q:'Wat Chedi Luang Chiang Mai',
     hours:'매일 06:00–18:00', price:'฿', dur:45, s:'11:00',
     why:'1441년 지진으로 무너진 60m 거대 체디. 규모가 압도적이에요.',
     tip:'입장 50฿/인. 스님과 대화하는 「Monk Chat」 프로그램이 오후에 열려요.' },
 
-  { id:'t4', c:'temple', e:'🪵', n:'왓 판타오', en:'Wat Phan Tao',
+  { id:'t4', c:'temple', e:'🪵', img:'t4.jpg', by:"Chainwit.", lic:'CC BY 4.0', src:'https://commons.wikimedia.org/wiki/File%3AAsalha_Puja_night_at_Wat_Phan_Tao%2C_Chiang_Mai_%2829_Jul_2026%29_-_IMG_01.jpg', n:'왓 판타오', en:'Wat Phan Tao',
     area:'체디루앙 바로 옆', lat:18.78779, lng:98.98744,
     q:'Wat Phan Tao Chiang Mai',
     hours:'매일 08:00–17:00', price:'무료', dur:25, s:'12:00',
     why:'통짜 티크 목조 법당. 황금 공작 문양과 어두운 나무결이 아름다워요.',
     tip:'체디루앙에서 걸어서 1분. 연등이 걸리는 저녁 무렵 사진이 예쁩니다.' },
 
-  { id:'t5', c:'temple', e:'✨', n:'왓 프라싱', en:'Wat Phra Singh',
+  { id:'t5', c:'temple', e:'✨', img:'t5.jpg', by:"Stefan Fussan", lic:'CC BY-SA 3.0', src:'https://commons.wikimedia.org/wiki/File%3AChiang_Mai_-_Wat_Phra_Singh_-_0006.jpg', n:'왓 프라싱', en:'Wat Phra Singh',
     area:'올드시티 서쪽', lat:18.78821, lng:98.98138,
     q:'Wat Phra Singh Chiang Mai',
     hours:'매일 06:00–20:00', price:'฿', dur:50, s:'14:00',
     why:'치앙마이 최고 격의 사원. 라이캄 법당의 란나 벽화가 백미.',
     tip:'입장 50฿/인. 바로 옆이 SP 치킨이라 점심과 묶기 좋아요.' },
 
-  { id:'t6', c:'temple', e:'🥈', n:'왓 씨수판 (실버 템플)', en:'Wat Sri Suphan',
+  { id:'t6', c:'temple', e:'🥈', img:'t6.jpg', by:"Michael Jenselius from Chiang Mai, Thailand", lic:'CC BY 2.0', src:'https://commons.wikimedia.org/wiki/File%3AWat_Si_Suphan%2C_Chiang_Mai.jpg', n:'왓 씨수판 (실버 템플)', en:'Wat Sri Suphan',
     area:'우알라이 로드', lat:18.77854, lng:98.98332,
     q:'Wat Sri Suphan Chiang Mai',
     hours:'매일 06:00–21:00 (야간 조명)', price:'฿', dur:40, s:'17:00',
     why:'은세공 마을의 통은(銀) 법당. 밤에 조명이 켜지면 더 근사해요.',
     tip:'⚠️ 법당 내부는 남성만 출입 가능(전통 규율). 외부 은세공 디테일만으로도 볼만합니다. 토요야시장 바로 앞.' },
 
-  { id:'t7', c:'temple', e:'🌳', n:'왓 우몽 (숲속 터널 사원)', en:'Wat Umong',
+  { id:'t7', c:'temple', e:'🌳', img:'t7.jpg', by:"Immanuelle", lic:'CC BY 4.0', src:'https://commons.wikimedia.org/wiki/File%3AWat_Umong_Suan_Phutthatham-105.jpg', n:'왓 우몽 (숲속 터널 사원)', en:'Wat Umong',
     area:'수텝 기슭', lat:18.78310, lng:98.95258,
     q:'Wat Umong Chiang Mai',
     hours:'매일 06:00–17:00', price:'무료', dur:70, s:'11:00',
     why:'700년 된 지하 터널 사원. 숲과 호수, 나무에 매달린 법구 문구들.',
     tip:'관광객이 적어 조용해요. 반깡왓·No.39 카페와 같은 방향입니다.' },
 
-  { id:'t8', c:'temple', e:'🏛️', n:'타패 게이트', en:'Tha Phae Gate',
+  { id:'t8', c:'temple', e:'🏛️', img:'t8.jpg', by:"Chainwit.", lic:'CC BY 4.0', src:'https://commons.wikimedia.org/wiki/File%3AChiang_Mai_-_Tha_Phae_Gate_%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%95%E0%B8%B9%E0%B8%97%E0%B9%88%E0%B8%B2%E0%B9%81%E0%B8%9E_%282026%29_-_IMG_02.jpg', n:'타패 게이트', en:'Tha Phae Gate',
     area:'올드시티 동문', lat:18.78776, lng:98.99327,
     q:'Tha Phae Gate Chiang Mai',
     hours:'상시', price:'무료', dur:30, s:'18:00',

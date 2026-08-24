@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<link rel="stylesheet" href="assets/css/style.css?v=8">
+<link rel="stylesheet" href="assets/css/style.css?v=11">
 </head>
 <body>
 
@@ -125,8 +125,16 @@
             <span>마음에 드는 곳을 골라 일정에 넣으세요</span>
           </div>
         </div>
+        <div class="pickmode">
+          <button type="button" class="chip chip--wide chip--go" data-pmode="grid">🗂 카드</button>
+          <button type="button" class="chip chip--wide" data-pmode="map">🗺 지도</button>
+        </div>
         <div id="pickCats" class="pickcats"></div>
         <div id="pickGrid" class="pickgrid"></div>
+        <div id="pickMapWrap" class="pickmap" hidden>
+          <div id="pickMap" class="pickmap__c"></div>
+          <div id="pickLegend" class="legend"></div>
+        </div>
       </section>
 
       <!-- 정보 -->
@@ -196,12 +204,12 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="assets/js/data.js?v=8"></script>
-<script src="assets/js/places.js?v=8"></script>
-<script src="assets/js/transit.js?v=8"></script>
-<script src="assets/js/globe.js?v=8"></script>
-<script src="assets/js/store.js?v=8"></script>
-<script src="assets/js/mapview.js?v=8"></script>
-<script src="assets/js/app.js?v=8"></script>
+<script src="assets/js/data.js?v=11"></script>
+<script src="assets/js/places.js?v=11"></script>
+<script src="assets/js/transit.js?v=11"></script>
+<script src="assets/js/globe.js?v=11"></script>
+<script src="assets/js/store.js?v=11"></script>
+<script src="assets/js/mapview.js?v=11"></script>
+<script src="assets/js/app.js?v=11"></script>
 </body>
 </html>

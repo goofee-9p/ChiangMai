@@ -116,7 +116,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
    잠금
    ══════════════════════════════════════════════════════════ */
 .lock{
-  position:fixed;inset:0;z-index:100;
+  position:fixed;inset:0;z-index:2000;
   display:flex;align-items:center;justify-content:center;
   padding:24px 22px calc(24px + var(--safe-b));
   background:radial-gradient(125% 75% at 50% -12%, #14504A 0%, #0A2E2C 48%, #071A22 100%);
@@ -344,7 +344,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
    지도
    ══════════════════════════════════════════════════════════ */
 .map{position:relative;overflow:hidden;height:56dvh;min-height:300px;width:100%;
-  background:var(--surface-2);z-index:1}
+  background:var(--surface-2);z-index:0;isolation:isolate}
 .map__layer{position:absolute;inset:0}
 .map__layer[hidden]{display:none}
 .maphint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
@@ -449,7 +449,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
    FAB · 탭바
    ══════════════════════════════════════════════════════════ */
 .fab{
-  position:fixed;right:16px;z-index:35;
+  position:fixed;right:16px;z-index:99;
   bottom:calc(var(--tabbar-h) + var(--safe-b) + 16px);
   width:54px;height:54px;border-radius:18px;display:grid;place-items:center;
   background:linear-gradient(140deg,var(--gold-2),#C98A0B);color:#231A06;
@@ -460,7 +460,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .fab svg{width:25px;height:25px;stroke-width:2.5}
 
 .tabbar{
-  position:fixed;left:0;right:0;bottom:0;z-index:36;
+  position:fixed;left:0;right:0;bottom:0;z-index:100;
   height:calc(var(--tabbar-h) + var(--safe-b));padding-bottom:var(--safe-b);
   display:grid;grid-template-columns:repeat(4,1fr);
   background:color-mix(in srgb,var(--surface) 86%,transparent);
@@ -477,7 +477,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 /* ══════════════════════════════════════════════════════════
    시트 · 폼
    ══════════════════════════════════════════════════════════ */
-.sheet{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.sheet{position:fixed;inset:0;z-index:1200;display:flex;align-items:flex-end;justify-content:center}
 .sheet__scrim{position:absolute;inset:0;background:rgba(10,15,18,.55);animation:fade .22s ease}
 .sheet__panel{position:relative;width:100%;max-width:520px;max-height:92dvh;
   display:flex;flex-direction:column;background:var(--bg);
@@ -548,7 +548,7 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
   border:1px solid var(--line);margin-bottom:15px;background:var(--surface-2)}
 
 .toast{position:fixed;left:50%;transform:translate(-50%,20px);
-  bottom:calc(var(--tabbar-h) + var(--safe-b) + 80px);z-index:80;
+  bottom:calc(var(--tabbar-h) + var(--safe-b) + 80px);z-index:1400;
   padding:11px 18px;border-radius:999px;background:rgba(12,18,20,.95);color:#F2EBDA;
   font-size:12.5px;font-weight:600;opacity:0;pointer-events:none;
   transition:opacity .22s,transform .22s;max-width:88vw;text-align:center}
@@ -822,6 +822,14 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
   content:"";position:absolute;inset:0;opacity:.07;pointer-events:none;
   background:repeating-linear-gradient(135deg,#fff 0 1px,transparent 1px 10px);
 }
+/* 실사진 카드 */
+.pcard__img.has-photo{
+  background-size:cover;background-position:center;
+}
+.pcard__img.has-photo::after{
+  opacity:1;
+  background:linear-gradient(180deg,rgba(0,0,0,.4) 0%,rgba(0,0,0,0) 44%,rgba(0,0,0,.16) 100%);
+}
 .pcard__bg{
   position:absolute;right:9px;top:50%;transform:translateY(-48%);
   font-size:50px;line-height:1;
@@ -866,6 +874,14 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 }
 .phero::after{content:"";position:absolute;inset:0;opacity:.07;pointer-events:none;
   background:repeating-linear-gradient(135deg,#fff 0 1px,transparent 1px 10px)}
+.phero.has-photo{background-size:cover;background-position:center}
+.phero.has-photo::after{opacity:1;
+  background:
+    linear-gradient(103deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.42) 46%, rgba(0,0,0,.05) 78%),
+    linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.1) 45%, rgba(0,0,0,.42) 100%)}
+.phero.has-photo .phero__n{text-shadow:0 2px 12px rgba(0,0,0,.85),0 1px 3px rgba(0,0,0,.9)}
+.phero.has-photo .phero__e{text-shadow:0 1px 8px rgba(0,0,0,.85);opacity:.95}
+.phero.has-photo .phero__n,.phero.has-photo .phero__e{max-width:78%}
 .phero__bg{position:absolute;right:10px;top:50%;transform:translateY(-48%);
   font-size:76px;line-height:1;filter:drop-shadow(0 6px 16px rgba(0,0,0,.42))}
 .phero__n{position:relative;display:block;font-size:20px;font-weight:800;letter-spacing:-.035em;
@@ -884,4 +900,36 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
   .pcard:hover{transform:translateY(-2px);border-color:var(--jade);box-shadow:var(--shadow-2)}
   .pcat:hover{border-color:var(--jade);color:var(--jade)}
   .pcard__img{height:104px}
+}
+
+/* ── 추천: 카드/지도 전환 ─────────────────────────────── */
+.pickmode{display:flex;gap:7px;padding:0 16px 10px}
+.pickmap{padding:2px 16px 0}
+.pickmap__c{
+  position:relative;z-index:0;isolation:isolate;
+  height:calc(100dvh - var(--topbar-h) - var(--safe-t) - var(--tabbar-h) - var(--safe-b) - 240px);
+  min-height:300px;border-radius:var(--r-m);overflow:hidden;
+  border:1px solid var(--line);box-shadow:var(--shadow-1);background:var(--surface-2);
+}
+.dot-marker{
+  width:30px;height:30px;border-radius:50%;
+  display:grid;place-items:center;font-size:14px;
+  border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.legend{display:flex;flex-wrap:wrap;gap:7px;padding:11px 0 0}
+.legend__i{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:999px;font-size:10.5px;font-weight:700;
+  background:var(--surface-2);color:var(--ink-2);
+}
+.legend__i i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+
+@media (min-width:640px){
+  .pickmode{max-width:600px;margin:0 auto}
+  .pickmap{max-width:600px;margin:0 auto}
+}
+@media (min-width:1024px){
+  .pickmode{padding:0 30px 12px;max-width:420px;margin:0}
+  .pickmap{padding:2px 30px 30px;max-width:none;margin:0}
+  .pickmap__c{height:calc(100dvh - 64px - 210px)}
 }

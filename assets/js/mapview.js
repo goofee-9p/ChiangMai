@@ -110,6 +110,46 @@
              invalidate: invalidate, refresh: refresh };
   }
 
+  /** 추천 장소용 — 카테고리 색 원형 핀 */
+  function createPicker(el, opts) {
+    opts = opts || {};
+    var map = L.map(el, { center: CNX_CENTER, zoom: 12, zoomControl: false, scrollWheelZoom: true });
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19, attribution: 'Tiles &copy; Esri'
+    }).addTo(map);
+    var layer = L.layerGroup().addTo(map);
+
+    function render(items) {
+      layer.clearLayers();
+      var pts = [];
+      items.forEach(function (it) {
+        if (!isFinite(it.lat) || !isFinite(it.lng)) return;
+        pts.push([it.lat, it.lng]);
+        var mk = L.marker([it.lat, it.lng], {
+          icon: L.divIcon({
+            className: '',
+            html: '<div class="dot-marker" style="background:' + it.color + '">' +
+                  '<span>' + it.emoji + '</span></div>',
+            iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -14]
+          }),
+          riseOnHover: true
+        });
+        mk.bindTooltip(esc(it.name), { direction: 'top', offset: [0, -12], className: 'pin-label' });
+        mk.on('click', function () { if (opts.onPick) opts.onPick(it.id); });
+        mk.addTo(layer);
+      });
+      requestAnimationFrame(function () {
+        map.invalidateSize({ animate: false });
+        if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(0.16), { animate: false });
+        else if (pts.length === 1) map.setView(pts[0], 14);
+        else map.setView(CNX_CENTER, 12);
+        setTimeout(function () { map.invalidateSize({ animate: false }); }, 180);
+      });
+    }
+    return { map: map, render: render };
+  }
+
   /** 단일 장소 미리보기용 구글맵 임베드 (API 키 불필요) */
   function embedPlace(lat, lng, zoom) {
     return 'https://maps.google.com/maps?q=' + lat + ',' + lng +
@@ -163,7 +203,7 @@
   }
 
   w.MapView = {
-    create: create, dayColor: dayColor,
+    create: create, createPicker: createPicker, dayColor: dayColor,
     embedPlace: embedPlace, embedDay: embedDay
   };
 })(window);

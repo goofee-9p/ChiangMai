@@ -483,7 +483,14 @@
      추천 장소 — 골라서 일정에 넣기
      ══════════════════════════════════════════════════════ */
   var PCAT_HUE = { market:20, cafe:32, bar:276, food:352, activity:166, temple:44, spa:322 };
-  var pickCat = 'all';
+  var pickCat = 'all', pickMode = 'grid', pickMap = null;
+
+  /** 카테고리 대표 색 — 지도 핀·범례용 */
+  function catColor(k) {
+    var h = PCAT_HUE[k] != null ? PCAT_HUE[k] : 200;
+    var dark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+    return dark ? 'hsl(' + h + ' 72% 60%)' : 'hsl(' + h + ' 64% 45%)';
+  }
 
   function placeHue(p) {
     var base = PCAT_HUE[p.c] != null ? PCAT_HUE[p.c] : 200;
@@ -515,11 +522,19 @@
     var done = pickedIds();
     var list = w.PLACES.filter(function (p) { return pickCat === 'all' || p.c === pickCat; });
 
+    $$('[data-pmode]').forEach(function (b) {
+      b.classList.toggle('chip--go', b.dataset.pmode === pickMode);
+    });
+    $('#pickGrid').hidden = pickMode !== 'grid';
+    $('#pickMapWrap').hidden = pickMode !== 'map';
+    if (pickMode === 'map') { renderPickMap(list); return; }
+
     gridEl.innerHTML = list.map(function (p) {
       var h = placeHue(p);
       return '<button type="button" class="pcard" data-pick="' + p.id + '" style="--h:' + h + '">' +
-        '<span class="pcard__img">' +
-          '<span class="pcard__bg">' + p.e + '</span>' +
+        '<span class="pcard__img' + (p.img ? ' has-photo" style="background-image:url(assets/img/' +
+          p.img + ')' : '') + '">' +
+          (p.img ? '' : '<span class="pcard__bg">' + p.e + '</span>') +
           '<span class="pcard__badge">' + catOf(p.c).i + '</span>' +
           (done[p.id] ? '<span class="pcard__done">✓ 추가됨</span>' : '') +
         '</span>' +
@@ -528,6 +543,24 @@
           '<span class="pcard__a">' + esc(p.area) + '</span>' +
           '<span class="pcard__m">' + esc(p.price) + ' · ' + TR.fmtMin(p.dur) + '</span>' +
         '</span></button>';
+    }).join('');
+  }
+
+  function renderPickMap(list) {
+    var el = $('#pickMap');
+    if (!pickMap) {
+      pickMap = MV.createPicker(el, { onPick: function (id) { openPick(id); } });
+    }
+    pickMap.render(list.map(function (p) {
+      return { id:p.id, lat:p.lat, lng:p.lng, name:p.n,
+               emoji: catOf(p.c).i, color: catColor(p.c) };
+    }));
+
+    var cats = pickCat === 'all' ? w.PLACE_CATS
+             : w.PLACE_CATS.filter(function (c) { return c.k === pickCat; });
+    $('#pickLegend').innerHTML = cats.map(function (c) {
+      return '<span class="legend__i"><i style="background:' + catColor(c.k) + '"></i>' +
+             c.i + ' ' + c.n + '</span>';
     }).join('');
   }
 
@@ -547,8 +580,9 @@
     var h = placeHue(p), done = pickedIds()[p.id];
 
     var body =
-      '<div class="phero" style="--h:' + h + '">' +
-        '<span class="phero__bg">' + p.e + '</span>' +
+      '<div class="phero' + (p.img ? ' has-photo' : '') + '" style="--h:' + h +
+        (p.img ? ';background-image:url(assets/img/' + p.img + ')' : '') + '">' +
+        (p.img ? '' : '<span class="phero__bg">' + p.e + '</span>') +
         '<span class="phero__n">' + esc(p.n) + '</span>' +
         '<span class="phero__e">' + esc(p.en) + '</span>' +
       '</div>' +
@@ -564,6 +598,8 @@
         '<a class="btn btn--ghost" target="_blank" rel="noopener" href="https://www.google.com/search?tbm=isch&q=' +
           encodeURIComponent(p.q) + '">📷 사진 보기</a>' +
       '</div>' +
+      (p.img ? '<p class="hint" style="margin-top:-6px">📷 ' + esc(p.by) + ' · ' + esc(p.lic) +
+        ' · <a href="' + p.src + '" target="_blank" rel="noopener">Wikimedia Commons</a></p>' : '') +
       (done ? '<div class="tip" style="margin-top:14px">✅ 이미 일정에 들어있어요. 아래에서 한 번 더 추가할 수도 있습니다.</div>' : '') +
       '<div class="rule"></div>' +
       '<form id="pickForm">' +
@@ -693,6 +729,18 @@
       '</div>' +
       '<p class="hint">공유 링크에는 내가 추가·수정한 일정이 담겨 있어요. 링크를 열면 상대방 기기에도 똑같이 반영됩니다. ' +
       '비밀번호는 화면 잠금 수준이니 링크는 둘만 공유하세요.</p></div>';
+
+    var withImg = (w.PLACES || []).filter(function (p) { return p.img; });
+    if (withImg.length) {
+      h += '<div class="panel"><div class="panel__h"><em>📷</em> 사진 출처</div>' +
+        '<p class="hint" style="margin-top:8px">추천 카드의 사진은 위키미디어 커먼즈의 자유 이용 라이선스 이미지입니다.</p>' +
+        '<div style="margin-top:10px">' + withImg.map(function (p) {
+          return '<div class="kv"><span class="kv__k">' + esc(p.n) + '</span>' +
+            '<span class="kv__v" style="font-weight:500;font-size:11.5px">' +
+            '<a href="' + p.src + '" target="_blank" rel="noopener">' + esc(p.by) + '</a> · ' +
+            esc(p.lic) + '</span></div>';
+        }).join('') + '</div></div>';
+    }
 
     h += '<p class="hint" style="text-align:center;padding:8px 0 4px">🐘 즐거운 여행 되세요</p>';
 
@@ -1056,6 +1104,9 @@
         return;
       }
 
+      var pmode = t.closest('[data-pmode]');
+      if (pmode) { pickMode = pmode.dataset.pmode; renderPick(); return; }
+
       var pcat = t.closest('[data-pcat]');
       if (pcat) { pickCat = pcat.dataset.pcat; renderPick(); return; }
 
@@ -1133,7 +1184,7 @@
 
     $('#hero').hidden = tab === 'schedule' ? false : (isDesk() ? tab === 'cal' : true);
     $('#daybar').hidden = tab !== 'schedule';
-    $('#btnAdd').hidden = !isDesk() && tab === 'info';
+    $('#btnAdd').hidden = (tab === 'pick') || (!isDesk() && tab === 'info');
     $('.shell').classList.toggle('shell--wide', tab !== 'schedule');
 
     placeMap();
