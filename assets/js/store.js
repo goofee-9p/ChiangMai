@@ -127,8 +127,8 @@
     persist();
   }
 
-  function isChecked(i) { return !!D.chk[i]; }
-  function toggleCheck(i, on) { if (on) D.chk[i] = 1; else delete D.chk[i]; persist(); }
+  function isChecked(k) { return !!D.chk[k]; }
+  function toggleCheck(k, on) { if (on) D.chk[k] = 1; else delete D.chk[k]; persist(); }
 
   function setStay(patch) { D.stay = Object.assign({}, D.stay || {}, patch); persist(); }
   function setting(k, v) {

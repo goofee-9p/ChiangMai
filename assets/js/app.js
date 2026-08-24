@@ -220,7 +220,7 @@
     if (el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   }
 
-  function renderAll() { renderSchedule(); renderMap(); renderInfo(); }
+  function renderAll() { renderSchedule(); renderMap(); renderCal(); renderInfo(); }
 
   /* ══════════════════════════════════════════════════════
      일정 (타임라인 + 이동 구간)
@@ -376,6 +376,107 @@
     }).join('') : '';
   }
 
+
+  /* ══════════════════════════════════════════════════════
+     달력 — 8일 × 시간 그리드
+     ══════════════════════════════════════════════════════ */
+  var CAL_HOUR = 46;        // 1시간당 높이(px)
+
+  function renderCal() {
+    var wrap = $('#calWrap');
+    if (!wrap) return;
+    var items = S.resolved();
+
+    /* 표시할 시간 범위 */
+    var lo = 24 * 60, hi = 0;
+    items.forEach(function (it) {
+      var a = toMin(it.s), b = it.e ? toMin(it.e) : a + 60;
+      if (b <= a) b = 24 * 60;
+      lo = Math.min(lo, a); hi = Math.max(hi, b);
+    });
+    if (!items.length) { lo = 8 * 60; hi = 22 * 60; }
+    var h0 = Math.max(0, Math.floor(lo / 60) - 1);
+    var h1 = Math.min(24, Math.ceil(hi / 60) + 1);
+    if (h1 - h0 < 10) h1 = Math.min(24, h0 + 10);
+    var rows = h1 - h0;
+
+    /* 헤더 */
+    var head = '<div class="cal__head"><div class="cal__cnr"></div>';
+    T.days.forEach(function (d, i) {
+      var sun = dObj(d.date).getDay() === 0;
+      head += '<button type="button" class="cal__day' + (sun ? ' is-sun' : '') +
+        (i === state.day ? ' is-active' : '') + '" data-calday="' + i + '">' +
+        '<span class="cal__day-t">' + d.tag + '</span>' +
+        '<span class="cal__day-n">' + dnum(d.date) + '</span>' +
+        '<span class="cal__day-w">' + wd(d.date) + '</span></button>';
+    });
+    head += '</div>';
+
+    /* 시간 눈금 */
+    var gut = '<div class="cal__gutter">';
+    for (var h = h0; h < h1; h++) {
+      gut += '<div class="cal__hr"><span>' + (h < 10 ? '0' + h : h) + '</span></div>';
+    }
+    gut += '</div>';
+
+    /* 날짜별 칼럼 */
+    var cols = '';
+    T.days.forEach(function (d) {
+      var evs = items.filter(function (i) { return i.date === d.date; });
+      cols += '<div class="cal__col" data-caldate="' + d.date + '">' +
+              laneHTML(evs, h0) + '</div>';
+    });
+
+    wrap.innerHTML = head +
+      '<div class="cal__body" style="--calH:' + CAL_HOUR + 'px;--calRows:' + rows + '">' +
+      gut + cols + nowLineHTML(h0, h1) + '</div>';
+  }
+
+  /* 겹치는 일정은 가로로 나눠 배치 */
+  function laneHTML(evs, h0) {
+    var list = evs.map(function (it) {
+      var a = toMin(it.s), b = it.e ? toMin(it.e) : a + 60;
+      if (b <= a) b = 24 * 60;
+      return { it: it, a: a, b: Math.max(b, a + 30) };
+    }).sort(function (x, y) { return x.a - y.a; });
+
+    var lanes = [];
+    list.forEach(function (e) {
+      var k = 0;
+      while (lanes[k] != null && lanes[k] > e.a) k++;
+      lanes[k] = e.b; e.lane = k;
+    });
+    var n = Math.max(1, lanes.length);
+
+    return list.map(function (e) {
+      var k = catKey(e.it.cat), c = CATS[k];
+      var top = (e.a - h0 * 60) / 60;
+      var hgt = (e.b - e.a) / 60;
+      var w = 100 / n;
+      return '<button type="button" class="cal__ev" data-item="' + e.it.id + '"' +
+        ' style="--cat:var(--c-' + k + ');top:calc(' + top + ' * var(--calH));' +
+        'height:calc(' + hgt + ' * var(--calH) - 3px);' +
+        'left:' + (e.lane * w) + '%;width:calc(' + w + '% - 3px)">' +
+        '<span class="cal__ev-t">' + esc(e.it.s) + '</span>' +
+        '<span class="cal__ev-n">' + c.i + ' ' + esc(e.it.title) + '</span>' +
+        '</button>';
+    }).join('');
+  }
+
+  /* 여행 기간 중이면 현재 시각 선 */
+  function nowLineHTML(h0, h1) {
+    var now = new Date();
+    var today = now.getFullYear() + '-' +
+      ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
+    var idx = T.days.findIndex(function (d) { return d.date === today; });
+    if (idx < 0) return '';
+    var m = now.getHours() * 60 + now.getMinutes();
+    if (m < h0 * 60 || m > h1 * 60) return '';
+    var top = (m - h0 * 60) / 60;
+    return '<div class="cal__now" style="top:calc(' + top + ' * var(--calH));' +
+           'grid-column:' + (idx + 2) + '"></div>';
+  }
+
   /* ══════════════════════════════════════════════════════
      정보
      ══════════════════════════════════════════════════════ */
@@ -434,16 +535,16 @@
     // 준비물
     var groups = {};
     T.checklist.forEach(function (c, i) { (groups[c.g] = groups[c.g] || []).push([c, i]); });
-    var doneN = T.checklist.filter(function (_, i) { return S.isChecked(i); }).length;
+    var doneN = T.checklist.filter(function (c) { return S.isChecked(c.t); }).length;
     h += '<div class="panel"><div class="panel__h"><em>🎒</em> 준비물 ' +
       '<span style="margin-left:auto;font-size:12px;color:var(--ink-3);font-family:var(--font-body)">' +
       doneN + '/' + T.checklist.length + '</span></div>';
     Object.keys(groups).forEach(function (g) {
       h += '<div style="margin-top:14px;font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.08em">' + esc(g) + '</div>';
       groups[g].forEach(function (pair) {
-        var c = pair[0], i = pair[1];
-        h += '<label class="chk"><input type="checkbox" data-chk="' + i + '"' +
-          (S.isChecked(i) ? ' checked' : '') + '><span>' + esc(c.t) +
+        var c = pair[0];
+        h += '<label class="chk"><input type="checkbox" data-chk="' + esc(c.t) + '"' +
+          (S.isChecked(c.t) ? ' checked' : '') + '><span>' + esc(c.t) +
           (c.d ? '<small>' + esc(c.d) + '</small>' : '') + '</span></label>';
       });
     });
@@ -514,10 +615,12 @@
   }
 
   /* ── 일정 추가/수정 폼 ────────────────────────────────── */
-  function openForm(id) {
+  function openForm(id, pre) {
     var it = id ? S.byId(id) : null;
     var day = T.days[state.day];
-    var v = it || { date: day.date, s: '', e: '', cat: 'temple', title: '', addr: '', note: '', cost: '' };
+    var v = it || Object.assign(
+      { date: day.date, s: '', e: '', cat: 'temple', title: '', addr: '', note: '', cost: '' },
+      pre || {});
 
     var body =
       '<form id="itemForm" novalidate>' +
@@ -708,6 +811,24 @@
       });
   }
 
+  /** 달력 빈 칸을 누르면 그 날짜·시간으로 추가 폼을 연다 */
+  function addAtSlot(col, e) {
+    var body = col.closest('.cal__body');
+    var hourPx = parseFloat(getComputedStyle(body).getPropertyValue('--calH')) || CAL_HOUR;
+    var first = $('.cal__hr', body);
+    var h0 = first ? parseInt(first.textContent, 10) : 8;
+    var y = e.clientY - col.getBoundingClientRect().top;
+    var mins = h0 * 60 + Math.round(y / hourPx * 60 / 30) * 30;      // 30분 단위 스냅
+    mins = Math.max(0, Math.min(23 * 60 + 30, mins));
+    var hh = ('0' + Math.floor(mins / 60)).slice(-2);
+    var mm = ('0' + (mins % 60)).slice(-2);
+
+    var di = T.days.findIndex(function (d) { return d.date === col.dataset.caldate; });
+    if (di >= 0) state.day = di;
+    openForm(null, { date: col.dataset.caldate, s: hh + ':' + mm,
+                     e: ('0' + Math.floor((mins + 60) / 60)).slice(-2) + ':' + mm });
+  }
+
   /* ── 숙소 편집 ────────────────────────────────────────── */
   function openStayForm() {
     var st = S.stay();
@@ -808,6 +929,15 @@
         return;
       }
 
+      var calday = t.closest('[data-calday]');
+      if (calday) { state.day = +calday.dataset.calday; renderDaybar(); renderAll(); switchTab('schedule'); return; }
+
+      var ev = t.closest('.cal__ev[data-item]');
+      if (ev) { openDetail(ev.dataset.item); return; }
+
+      var col = t.closest('.cal__col[data-caldate]');
+      if (col) { addAtSlot(col, e); return; }
+
       var act = t.closest('[data-act]');
       if (act) { doAct(act.dataset.act, act.dataset.id); return; }
 
@@ -824,6 +954,10 @@
       });
       if (mapv) mapv.refresh(list.map(function (i) { return [i.lat, i.lng]; }));
     });
+    $('#btnCalZoom').addEventListener('click', function () {
+      var w = $('#calWrap'), fit = w.classList.toggle('cal--fit');
+      $('#btnCalZoom').textContent = fit ? '넓게 보기' : '한눈에 보기';
+    });
     $('#btnGmapMode').addEventListener('click', function () {
       state.gmapMode = !state.gmapMode;
       syncMapBtn(); renderMap();
@@ -836,7 +970,7 @@
 
     d.addEventListener('change', function (e) {
       var c = e.target.closest('input[data-chk]');
-      if (c) { S.toggleCheck(+c.dataset.chk, c.checked); renderInfo(); }
+      if (c) { S.toggleCheck(c.dataset.chk, c.checked); renderInfo(); }
     });
 
     d.addEventListener('keydown', function (e) {
@@ -852,7 +986,7 @@
   }
 
   function switchTab(tab) {
-    if (tab !== 'info') tab = 'schedule';
+    if (tab !== 'info' && tab !== 'cal') tab = 'schedule';
     state.tab = tab;
 
     $$('.tabbar__btn').forEach(function (x) { x.classList.toggle('is-active', x.dataset.tab === tab); });
@@ -864,12 +998,14 @@
       v.hidden = k !== tab;
     });
 
-    $('#hero').hidden = isDesk() ? false : tab !== 'schedule';
-    $('#daybar').hidden = tab === 'info';
+    $('#hero').hidden = tab === 'schedule' ? false : (isDesk() ? tab === 'cal' : true);
+    $('#daybar').hidden = tab !== 'schedule';
     $('#btnAdd').hidden = !isDesk() && tab === 'info';
+    $('.shell').classList.toggle('shell--wide', tab !== 'schedule');
 
     placeMap();
     renderMap();
+    if (tab === 'cal') renderCal();
     w.scrollTo({ top: 0, behavior: 'auto' });
   }
 
