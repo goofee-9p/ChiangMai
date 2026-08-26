@@ -89,7 +89,7 @@
   function toMin(t) { var p = String(t || '0:0').split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
 
   /* ── 상태 ─────────────────────────────────────────────── */
-  var state = { day: 0, tab: 'schedule', activeId: null, gmapMode: false };
+  var state = { day: 0, tab: 'schedule', activeId: null, gmapMode: false, calMoved: false };
   var mapv = null, globe = null;
   var MQ_DESK = w.matchMedia('(min-width:1024px)');
   function isDesk() { return MQ_DESK.matches; }
@@ -381,7 +381,10 @@
   /* ══════════════════════════════════════════════════════
      달력 — 8일 × 시간 그리드
      ══════════════════════════════════════════════════════ */
-  var CAL_HOUR = 46;        // 1시간당 높이(px)
+  var CAL_HOUR = 58;        // 1시간당 높이(px)
+  var CAL_MIN  = 30;        // 블록 최소 표시 길이(분) — 짧은 일정도 읽히게
+  var CAL_SNAP = 5;         // 드래그 스냅 단위(분)
+  var CAL_LEAST = 10;       // 드래그로 줄일 수 있는 최소 길이(분)
 
   function renderCal() {
     var wrap = $('#calWrap');
@@ -431,37 +434,200 @@
     wrap.innerHTML = head +
       '<div class="cal__body" style="--calH:' + CAL_HOUR + 'px;--calRows:' + rows + '">' +
       gut + cols + nowLineHTML(h0, h1) + '</div>';
+
+    bindCal();
   }
 
-  /* 겹치는 일정은 가로로 나눠 배치 */
+  /* 겹치는 일정은 가로로 나눠 배치.
+     레인 계산은 "실제 시간"으로만 한다 — 표시용 최소 높이(CAL_MIN)까지 겹침으로
+     쳐버리면 09:45–10:00 뒤에 10:00 일정이 오는 것처럼 맞닿기만 한 일정도
+     반쪽으로 쪼개져 버린다. */
   function laneHTML(evs, h0) {
     var list = evs.map(function (it) {
       var a = toMin(it.s), b = it.e ? toMin(it.e) : a + 60;
       if (b <= a) b = 24 * 60;
-      return { it: it, a: a, b: Math.max(b, a + 30) };
-    }).sort(function (x, y) { return x.a - y.a; });
+      return { it: it, a: a, b: b };
+    }).sort(function (x, y) { return x.a - y.a || x.b - y.b; });
 
-    var lanes = [];
+    var lanes = [], byLane = [];
     list.forEach(function (e) {
       var k = 0;
       while (lanes[k] != null && lanes[k] > e.a) k++;
       lanes[k] = e.b; e.lane = k;
+      (byLane[k] = byLane[k] || []).push(e);
     });
     var n = Math.max(1, lanes.length);
+
+    /* 짧은 일정도 글자가 보이게 최소 높이를 주되,
+       같은 레인의 다음 일정 시작을 넘지 않도록 잘라준다. */
+    byLane.forEach(function (arr) {
+      arr.forEach(function (e, i) {
+        var lim = arr[i + 1] ? arr[i + 1].a : 24 * 60;
+        e.h = Math.min(Math.max(e.b, e.a + CAL_MIN), lim);
+      });
+    });
 
     return list.map(function (e) {
       var k = catKey(e.it.cat), c = CATS[k];
       var top = (e.a - h0 * 60) / 60;
-      var hgt = (e.b - e.a) / 60;
-      var w = 100 / n;
-      return '<button type="button" class="cal__ev" data-item="' + e.it.id + '"' +
+      var span = e.h - e.a;
+      var hgt = span / 60;
+      var wid = 100 / n;
+      var label = c.i + ' ' + e.it.title;
+      var tip = e.it.s + (e.it.e ? '–' + e.it.e : '') + '  ' + label;
+      return '<button type="button" class="cal__ev' + (span < 40 ? ' is-short' : '') +
+        '" data-item="' + e.it.id + '" title="' + esc(tip) + '"' +
         ' style="--cat:var(--c-' + k + ');top:calc(' + top + ' * var(--calH));' +
         'height:calc(' + hgt + ' * var(--calH) - 3px);' +
-        'left:' + (e.lane * w) + '%;width:calc(' + w + '% - 3px)">' +
+        'left:' + (e.lane * wid) + '%;width:calc(' + wid + '% - 3px)">' +
+        '<span class="cal__grip cal__grip--t" data-grip="top"></span>' +
         '<span class="cal__ev-t">' + esc(e.it.s) + '</span>' +
-        '<span class="cal__ev-n">' + c.i + ' ' + esc(e.it.title) + '</span>' +
+        '<span class="cal__ev-n">' + esc(label) + '</span>' +
+        '<span class="cal__grip cal__grip--b" data-grip="bottom"></span>' +
         '</button>';
     }).join('');
+  }
+
+
+  /* ── 달력 드래그 — 통째로 옮기기 / 위아래로 시간 늘리기 ─── */
+  var calDrag = null;
+
+  function hhmm(m) {
+    m = Math.max(0, Math.min(1440, Math.round(m)));
+    if (m === 1440) return '00:00';                       // 자정은 00:00 으로
+    return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2);
+  }
+
+  function calBadge() {
+    var b = $('#calBadge');
+    if (!b) {
+      b = d.createElement('div');
+      b.id = 'calBadge'; b.className = 'calbadge'; b.hidden = true;
+      d.body.appendChild(b);
+    }
+    return b;
+  }
+
+  function calPaint(dg) {
+    var top = (dg.na - dg.h0 * 60) / 60;
+    var hgt = Math.max(dg.nb - dg.na, CAL_MIN) / 60;
+    dg.el.style.top = 'calc(' + top + ' * var(--calH))';
+    dg.el.style.height = 'calc(' + hgt + ' * var(--calH) - 3px)';
+    var b = calBadge();
+    b.textContent = (dg.ndate !== dg.date ? dnum(dg.ndate) + '일 · ' : '') +
+      hhmm(dg.na) + ' – ' + hhmm(dg.nb) + ' · ' + TR.fmtMin(dg.nb - dg.na);
+    b.hidden = false;
+  }
+
+  function calGrab(el, x, y, pid, mode) {
+    var body = el.closest('.cal__body');
+    var it = body && S.byId(el.dataset.item);
+    if (!it) return;
+    var a = toMin(it.s), b = it.e ? toMin(it.e) : a + 60;
+    if (b <= a) b = 24 * 60;
+    var first = $('.cal__hr', body);
+
+    calDrag = {
+      el: el, id: it.id, mode: mode, body: body,
+      hourPx: parseFloat(getComputedStyle(body).getPropertyValue('--calH')) || CAL_HOUR,
+      h0: first ? parseInt(first.textContent, 10) : 0,
+      cols: $$('.cal__col', body).map(function (c) {
+        return { el: c, date: c.dataset.caldate, r: c.getBoundingClientRect() };
+      }),
+      x0: x, y0: y, a: a, b: b, dur: b - a,
+      date: it.date, na: a, nb: b, ndate: it.date, moved: false
+    };
+    el.classList.add('is-drag');
+    el.style.left = '0%';
+    el.style.width = 'calc(100% - 3px)';
+    try { el.setPointerCapture(pid); } catch (x) { /* noop */ }
+    calPaint(calDrag);
+  }
+
+  function calRelease(commit) {
+    var dg = calDrag;
+    if (!dg) return;
+    calDrag = null;
+    dg.el.classList.remove('is-drag');
+    calBadge().hidden = true;
+
+    var same = dg.na === dg.a && dg.nb === dg.b && dg.ndate === dg.date;
+    if (!commit || !dg.moved || same) { renderCal(); return; }
+
+    state.calMoved = true;                                // 뒤따라오는 click 무시
+    S.updateItem(dg.id, { s: hhmm(dg.na), e: hhmm(dg.nb), date: dg.ndate });
+    var di = T.days.findIndex(function (x) { return x.date === dg.ndate; });
+    if (di >= 0) state.day = di;
+    renderDaybar(); renderAll();
+    toast('옮겼어요 · ' + hhmm(dg.na) + '–' + hhmm(dg.nb));
+    setTimeout(function () { state.calMoved = false; }, 400);
+  }
+
+  function bindCal() {
+    var wrap = $('#calWrap');
+    if (!wrap || wrap.dataset.dnd) return;
+    wrap.dataset.dnd = '1';
+    var hold = null, armed = null;
+
+    function disarm() {
+      if (hold) { clearTimeout(hold); hold = null; }
+      armed = null;
+    }
+
+    wrap.addEventListener('pointerdown', function (e) {
+      if (e.button != null && e.button !== 0) return;
+      var el = e.target.closest('.cal__ev[data-item]');
+      if (!el) return;
+
+      var grip = e.target.closest('[data-grip]');
+      if (grip) {                                          // 손잡이는 바로 잡힌다
+        e.preventDefault();
+        calGrab(el, e.clientX, e.clientY, e.pointerId, grip.dataset.grip);
+        return;
+      }
+      /* 본체는 살짝 눌러 두어야 집어올린다 — 안 그러면 스크롤이 죽는다 */
+      armed = { el: el, x: e.clientX, y: e.clientY, pid: e.pointerId };
+      hold = setTimeout(function () {
+        hold = null;
+        if (!armed) return;
+        calGrab(armed.el, armed.x, armed.y, armed.pid, 'move');
+        armed = null;
+        var nv = w.navigator;
+        if (nv && nv.vibrate) { try { nv.vibrate(12); } catch (x) { /* noop */ } }
+      }, e.pointerType === 'mouse' ? 130 : 300);
+    });
+
+    w.addEventListener('pointermove', function (e) {
+      if (armed && (Math.abs(e.clientX - armed.x) > 8 ||
+                    Math.abs(e.clientY - armed.y) > 8)) disarm();
+
+      var dg = calDrag;
+      if (!dg) return;
+      e.preventDefault();
+      dg.moved = true;
+
+      var dm = Math.round((e.clientY - dg.y0) / dg.hourPx * 60 / CAL_SNAP) * CAL_SNAP;
+
+      if (dg.mode === 'move') {
+        dg.na = Math.max(0, Math.min(1440 - dg.dur, dg.a + dm));
+        dg.nb = dg.na + dg.dur;
+        var hit = null;
+        dg.cols.forEach(function (c) {
+          if (e.clientX >= c.r.left && e.clientX <= c.r.right) hit = c;
+        });
+        if (hit && hit.date !== dg.ndate) { dg.ndate = hit.date; hit.el.appendChild(dg.el); }
+      } else if (dg.mode === 'top') {
+        dg.na = Math.max(0, Math.min(dg.b - CAL_LEAST, dg.a + dm));
+        dg.nb = dg.b;
+      } else {
+        dg.na = dg.a;
+        dg.nb = Math.min(1440, Math.max(dg.a + CAL_LEAST, dg.b + dm));
+      }
+      calPaint(dg);
+    }, { passive: false });
+
+    w.addEventListener('pointerup', function () { disarm(); calRelease(true); });
+    w.addEventListener('pointercancel', function () { disarm(); calRelease(false); });
   }
 
   /* 여행 기간 중이면 현재 시각 선 */
@@ -1117,7 +1283,7 @@
       if (calday) { state.day = +calday.dataset.calday; renderDaybar(); renderAll(); switchTab('schedule'); return; }
 
       var ev = t.closest('.cal__ev[data-item]');
-      if (ev) { openDetail(ev.dataset.item); return; }
+      if (ev) { if (!state.calMoved) openDetail(ev.dataset.item); return; }
 
       var col = t.closest('.cal__col[data-caldate]');
       if (col) { addAtSlot(col, e); return; }

@@ -753,6 +753,53 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 .cal--fit .cal__ev-t{font-size:8.5px}
 .cal--fit .cal__ev-n{font-size:9.5px;-webkit-line-clamp:5;line-height:1.25}
 
+/* 짧은 블록은 시간·제목을 한 줄로 눕혀서 글자가 덜 잘리게 */
+.cal__ev.is-short{flex-direction:row;align-items:center;gap:5px;padding:2px 5px}
+.cal__ev.is-short .cal__ev-t{flex:0 0 auto}
+.cal__ev.is-short .cal__ev-n{
+  display:block;-webkit-line-clamp:unset;margin-top:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cal--fit .cal__ev.is-short{flex-direction:column;align-items:stretch;gap:0}
+.cal--fit .cal__ev.is-short .cal__ev-n{font-size:9px}
+
+/* 위·아래 손잡이 — 잡아서 시간 늘리기 */
+.cal__grip{
+  position:absolute;left:0;right:0;height:11px;z-index:3;
+  cursor:ns-resize;touch-action:none;
+}
+.cal__grip--t{top:0}
+.cal__grip--b{bottom:0}
+.cal__grip::after{
+  content:"";position:absolute;left:50%;transform:translateX(-50%);
+  width:20px;height:3px;border-radius:2px;
+  background:var(--cat,var(--jade));opacity:0;transition:opacity .12s;
+}
+.cal__grip--t::after{top:2px}
+.cal__grip--b::after{bottom:2px}
+.cal__ev:hover .cal__grip::after,
+.cal__ev.is-drag .cal__grip::after{opacity:.6}
+
+/* 집어든 상태 */
+.cal__ev{touch-action:pan-y;cursor:grab}
+.cal__ev.is-drag,
+.cal__ev.is-drag:active{
+  cursor:grabbing;z-index:30;transform:none;
+  box-shadow:var(--shadow-2);
+  outline:2px solid var(--cat,var(--jade));outline-offset:-1px;
+}
+
+/* 드래그 중 시간 배지 */
+.calbadge{
+  position:fixed;left:50%;top:calc(var(--safe-t) + var(--topbar-h) + 12px);
+  transform:translateX(-50%);z-index:60;pointer-events:none;
+  padding:7px 14px;border-radius:999px;
+  background:var(--ink);color:var(--bg);
+  font-size:12.5px;font-weight:700;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;
+  box-shadow:var(--shadow-2);white-space:nowrap;
+}
+
 .cal__now{
   position:absolute;left:0;right:0;height:2px;background:var(--brick);
   z-index:6;pointer-events:none;
